@@ -5,7 +5,7 @@ const morgan = require("morgan");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const tournamentRoutes = require("./routes/tournamentRoutes"); // Import tournament routes
-
+const participantRoutes = require("./routes/playerRoutes"); 
 // Load environment variables from .env
 dotenv.config();
 
@@ -23,6 +23,8 @@ app.use(morgan("dev")); // Log HTTP requests to the console for debugging
 // Routes
 app.use("/api/auth", authRoutes); // Authentication routes
 app.use("/api/tournaments", tournamentRoutes); // Tournament routes
+app.use("/api/participants", participantRoutes); // Register participant routes
+
 
 // Default Route
 app.get("/", (req, res) => {
@@ -31,7 +33,7 @@ app.get("/", (req, res) => {
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack); // Log error stack for debugging
+  console.error("Error: ", err.message); // Log error message for debugging
   res.status(err.status || 500).json({
     message: err.message || "Server error. Please try again later.",
   });
