@@ -4,6 +4,7 @@ const cors = require("cors");
 const morgan = require("morgan");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const tournamentRoutes = require("./routes/tournamentRoutes"); // Import tournament routes
 
 // Load environment variables from .env
 dotenv.config();
@@ -21,6 +22,7 @@ app.use(morgan("dev")); // Log HTTP requests to the console for debugging
 
 // Routes
 app.use("/api/auth", authRoutes); // Authentication routes
+app.use("/api/tournaments", tournamentRoutes); // Tournament routes
 
 // Default Route
 app.get("/", (req, res) => {
