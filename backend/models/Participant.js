@@ -32,9 +32,28 @@ const participantSchema = new mongoose.Schema({
     type: Date,
     default: Date.now, // Automatically set the timestamp when a participant is created
   },
+  bracketStatus: {
+    type: String,
+    enum: ["Not Started", "In Progress", "Completed"],
+    default: "Not Started", // Status of the bracket for this participant
+  },
+  matchResults: {
+    type: Map,
+    of: String, // Key-value pairs for match results (e.g., {"Round 1": "Won", "Round 2": "Lost"})
+    default: {}, // Default is an empty object
+  },
 });
 
 // Create a unique compound index to prevent duplicate entries
 participantSchema.index({ player: 1, tournament: 1 }, { unique: true });
+
+// Add a method to update match results for the participant
+participantSchema.methods.updateMatchResult = function (round, result) {
+  if (!this.matchResults) {
+    this.matchResults = new Map();
+  }
+  this.matchResults.set(round, result);
+  return this.save();
+};
 
 module.exports = mongoose.model("Participant", participantSchema);
