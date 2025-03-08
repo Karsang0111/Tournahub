@@ -8,6 +8,7 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const tournamentRoutes = require("./routes/tournamentRoutes");
 const participantRoutes = require("./routes/playerRoutes");
+const adminRoutes = require("./routes/adminRoutes"); // ✅ Added Admin Routes
 
 // Load environment variables
 dotenv.config();
@@ -45,6 +46,7 @@ io.on("connection", (socket) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/tournaments", tournamentRoutes);
 app.use("/api/participants", participantRoutes);
+app.use("/api/admin", adminRoutes); // ✅ Added Admin Route
 
 // Default Route
 app.get("/", (req, res) => {

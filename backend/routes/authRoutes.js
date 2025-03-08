@@ -96,5 +96,51 @@ router.post("/organizer-login", async (req, res) => {
     res.status(500).json({ message: "Error logging in organizer. Please try again later." });
   }
 });
+router.post("/admin-login", async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const user = await User.findOne({ username, role: "admin" });
+    if (!user || !(await user.matchPassword(password))) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const token = generateToken(user._id, "admin");
+
+    res.status(200).json({
+      id: user._id,
+      username: user.username,
+      role: "admin",
+      token,
+    });
+  } catch (err) {
+    console.error("Error during admin login:", err.message);
+    res.status(500).json({ message: "Error logging in admin. Please try again later." });
+  }
+});
+
+// 🔹 Spectator Login Route
+router.post("/spectator-login", async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const user = await User.findOne({ username, role: "spectator" });
+    if (!user || !(await user.matchPassword(password))) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const token = generateToken(user._id, "spectator");
+
+    res.status(200).json({
+      id: user._id,
+      username: user.username,
+      role: "spectator",
+      token,
+    });
+  } catch (err) {
+    console.error("Error during spectator login:", err.message);
+    res.status(500).json({ message: "Error logging in spectator. Please try again later." });
+  }
+});
 
 module.exports = router;

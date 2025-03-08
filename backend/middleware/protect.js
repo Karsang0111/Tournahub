@@ -1,32 +1,30 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
+// ✅ Middleware to Protect Routes (Auth Required)
 const protect = async (req, res, next) => {
   let token;
 
   try {
-    // Check if Authorization header exists and starts with "Bearer"
     if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-      // Extract token from the Authorization header
+      // Extract token from header
       token = req.headers.authorization.split(" ")[1];
 
-      // Verify and decode the token
+      // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Find the user in the database using the decoded ID
-      req.user = await User.findById(decoded.id).select("-password"); // Exclude password from returned user data
+      // Find user in DB & exclude password
+      req.user = await User.findById(decoded.id).select("-password");
 
       if (!req.user) {
         return res.status(401).json({ message: "User not found. Unauthorized." });
       }
 
-      next(); // Proceed to the next middleware or route handler
+      next(); // Move to next middleware
     } else {
-      // If no Authorization header or token is provided
       throw new Error("No token provided.");
     }
   } catch (error) {
-    // Handle token verification or decoding errors
     console.error("Authorization Error:", error.message);
     return res.status(401).json({
       message: error.message === "jwt malformed" ? "Invalid token." : error.message,
@@ -34,4 +32,13 @@ const protect = async (req, res, next) => {
   }
 };
 
-module.exports = { protect };
+// ✅ Middleware to Restrict Access to Admins Only
+const adminOnly = (req, res, next) => {
+  if (req.user && req.user.role === "admin") {
+    next();
+  } else {
+    return res.status(403).json({ message: "Access denied. Admins only." });
+  }
+};
+
+module.exports = { protect, adminOnly };
