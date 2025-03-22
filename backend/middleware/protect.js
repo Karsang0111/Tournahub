@@ -1,26 +1,24 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-// ✅ Middleware to Protect Routes (Auth Required)
+// ✅ Middleware to Protect Routes
 const protect = async (req, res, next) => {
   let token;
 
   try {
     if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-      // Extract token from header
       token = req.headers.authorization.split(" ")[1];
-
-      // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Find user in DB & exclude password
-      req.user = await User.findById(decoded.id).select("-password");
-
-      if (!req.user) {
+      const user = await User.findById(decoded.id).select("-password");
+      if (!user) {
         return res.status(401).json({ message: "User not found. Unauthorized." });
       }
 
-      next(); // Move to next middleware
+      req.user = user;
+      req.user.role = decoded.role; // Optional: trust token role for consistency
+
+      next();
     } else {
       throw new Error("No token provided.");
     }
@@ -32,7 +30,7 @@ const protect = async (req, res, next) => {
   }
 };
 
-// ✅ Middleware to Restrict Access to Admins Only
+// ✅ Middleware for Admins Only
 const adminOnly = (req, res, next) => {
   if (req.user && req.user.role === "admin") {
     next();
@@ -41,4 +39,14 @@ const adminOnly = (req, res, next) => {
   }
 };
 
-module.exports = { protect, adminOnly };
+// ✅ Optional: Middleware for multiple roles
+const restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({ message: "Access denied." });
+    }
+    next();
+  };
+};
+
+module.exports = { protect, adminOnly, restrictTo };

@@ -7,18 +7,40 @@ const router = express.Router();
 // Create a new tournament
 router.post("/", protect, async (req, res) => {
   try {
-    // Ensure only organizers can access this route
+    // Only organizers allowed
     if (req.user.role !== "organizer") {
       return res.status(403).json({ message: "Access denied. Organizer only." });
     }
 
-    // Create a new tournament with the organizer's ID
+    const {
+      name,
+      description,
+      scheduleDate,
+      startDate,
+      endDate,
+      prizeMoney,
+      payment,
+    } = req.body;
+
+    // Validate required fields
+    if (!name || !description || !scheduleDate || !startDate || !endDate || !prizeMoney || !payment) {
+      return res.status(400).json({ message: "All tournament fields are required." });
+    }
+
+    // Create and save the tournament
     const tournament = new Tournament({
-      ...req.body,
-      organizer: req.user.id, // Attach authenticated organizer's ID
+      name,
+      description,
+      scheduleDate,
+      startDate,
+      endDate,
+      prizeMoney,
+      payment,
+      organizer: req.user.id, // Organizer ID from token
     });
 
     await tournament.save();
+
     res.status(201).json({
       message: "Tournament created successfully.",
       tournament,
@@ -33,8 +55,8 @@ router.post("/", protect, async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const tournaments = await Tournament.find().populate(
-      "organizer", // Populate organizer field
-      "username email" // Return only username and email fields
+      "organizer", // Foreign key population
+      "username email" // Only return selected fields
     );
     res.status(200).json(tournaments);
   } catch (error) {

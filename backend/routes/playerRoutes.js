@@ -73,7 +73,7 @@ router.get("/my-tournaments", protect, async (req, res) => {
     }
 
     const joinedTournaments = await Participant.find({ player: req.user.id })
-      .populate("tournament", "name description scheduleDate prizeMoney")
+      .populate("tournament", "name description scheduleDate startDate endDate prizeMoney payment")
       .populate("player", "username email");
 
     if (!joinedTournaments.length) {
@@ -110,7 +110,7 @@ router.get("/my-team/:tournamentId", protect, async (req, res) => {
       player: req.user.id,
       tournament: tournament._id,
     })
-      .populate("tournament", "name description scheduleDate prizeMoney")
+      .populate("tournament", "name description scheduleDate startDate endDate prizeMoney payment")
       .populate("player", "username email");
 
     if (!participant) {
@@ -131,10 +131,8 @@ router.get("/brackets/:tournamentId", async (req, res) => {
   try {
     const { tournamentId } = req.params;
 
-    // Convert hyphenated name (e.g., "mobile-legend") to match DB format ("Mobile Legend")
     const formattedName = tournamentId.replace(/-/g, " ");
 
-    // Find tournament by ID or Name
     const tournament = mongoose.isValidObjectId(tournamentId)
       ? await Tournament.findById(tournamentId)
       : await Tournament.findOne({ name: new RegExp(`^${formattedName}$`, "i") });
@@ -143,18 +141,15 @@ router.get("/brackets/:tournamentId", async (req, res) => {
       return res.status(404).json({ message: "Tournament not found." });
     }
 
-    // Fetch all participants
     const participants = await Participant.find({ tournament: tournament._id }).select("teamName");
 
     if (participants.length < 2) {
       return res.status(400).json({ message: "Not enough participants to generate brackets." });
     }
 
-    // Extract team names and shuffle them randomly
     const teamNames = participants.map((p) => p.teamName);
     teamNames.sort(() => Math.random() - 0.5);
 
-    // Function to generate brackets
     const generateBrackets = (teams) => {
       const rounds = [];
       let currentRound = [...teams];
@@ -167,7 +162,7 @@ router.get("/brackets/:tournamentId", async (req, res) => {
           if (i + 1 < currentRound.length) {
             currentMatches.push({ team1: currentRound[i], team2: currentRound[i + 1] });
           } else {
-            currentMatches.push({ team1: currentRound[i], team2: "Bye" }); // "Bye" for odd teams
+            currentMatches.push({ team1: currentRound[i], team2: "Bye" });
           }
         }
 
@@ -179,7 +174,6 @@ router.get("/brackets/:tournamentId", async (req, res) => {
       return rounds;
     };
 
-    // Generate brackets
     const brackets = generateBrackets(teamNames);
 
     return res.status(200).json({ tournament: tournament.name, brackets });
