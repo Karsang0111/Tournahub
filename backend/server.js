@@ -9,7 +9,7 @@ const authRoutes = require("./routes/authRoutes");
 const tournamentRoutes = require("./routes/tournamentRoutes");
 const participantRoutes = require("./routes/playerRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-
+const paymentRoutes = require("./routes/paymentRoutes");
 // Load environment variables
 dotenv.config();
 
@@ -53,6 +53,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/tournaments", tournamentRoutes);
 app.use("/api/participants", participantRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // Default API Route
 app.get("/", (req, res) => {
