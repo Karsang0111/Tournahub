@@ -1,70 +1,52 @@
 const Tournament = require("../models/Tournament");
 
-// Controller to handle tournament creation
-const createTournament = async (req, res) => {
+exports.createTournament = async (req, res) => {
   try {
-    const {
-      name,
-      description,
-      scheduleDate,
-      startDate,
-      endDate,
-      prizeMoney,
-      payment,
-      organizer, // make sure to pass this from frontend or middleware
-    } = req.body;
-
-    // Validate request body
-    if (
-      !name ||
-      !description ||
-      !scheduleDate ||
-      !startDate ||
-      !endDate ||
-      !prizeMoney ||
-      payment === undefined ||
-      !organizer
-    ) {
-      return res.status(400).json({ message: "All fields are required." });
-    }
-
-    // Create new tournament
-    const newTournament = new Tournament({
-      name,
-      description,
-      scheduleDate,
-      startDate,
-      endDate,
-      prizeMoney,
-      payment,
-      organizer,
-    });
-
-    // Save to database
-    await newTournament.save();
-
-    res.status(201).json({
-      message: "Tournament created successfully!",
-      tournament: newTournament,
-    });
+    const tournament = await Tournament.create(req.body);
+    res.status(201).json({ success: true, data: tournament });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error. Please try again later." });
+    res.status(400).json({ success: false, error: error.message });
   }
 };
 
-// Controller to fetch all tournaments
-const getAllTournaments = async (req, res) => {
+exports.getTournaments = async (req, res) => {
   try {
-    const tournaments = await Tournament.find().populate("organizer", "name email"); // Optional: populate organizer info
-    res.status(200).json(tournaments);
+    const tournaments = await Tournament.find().populate("organizer", "name email");
+    res.status(200).json({ success: true, data: tournaments });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error. Please try again later." });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
-module.exports = {
-  createTournament,
-  getAllTournaments,
+exports.getTournamentById = async (req, res) => {
+  try {
+    const tournament = await Tournament.findById(req.params.id).populate("organizer", "name email");
+    if (!tournament) return res.status(404).json({ success: false, message: "Tournament not found" });
+
+    res.status(200).json({ success: true, data: tournament });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+exports.updateTournament = async (req, res) => {
+  try {
+    const tournament = await Tournament.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    if (!tournament) return res.status(404).json({ success: false, message: "Tournament not found" });
+
+    res.status(200).json({ success: true, data: tournament });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+exports.deleteTournament = async (req, res) => {
+  try {
+    const tournament = await Tournament.findByIdAndDelete(req.params.id);
+    if (!tournament) return res.status(404).json({ success: false, message: "Tournament not found" });
+
+    res.status(200).json({ success: true, message: "Tournament deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 };

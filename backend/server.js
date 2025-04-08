@@ -10,6 +10,8 @@ const tournamentRoutes = require("./routes/tournamentRoutes");
 const participantRoutes = require("./routes/playerRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const axios = require('axios');
+
 // Load environment variables
 dotenv.config();
 
@@ -21,9 +23,9 @@ const app = express();
 const server = createServer(app);
 
 // Middleware
-app.use(express.json()); 
+app.use(express.json());
 app.use(cors({ origin: process.env.CORS_ORIGIN || "*" })); // Secure CORS for production
-app.use(morgan("dev")); 
+app.use(morgan("dev"));
 
 // Initialize Socket.IO for real-time updates
 const io = new Server(server, {
@@ -68,6 +70,12 @@ app.use((err, req, res, next) => {
     message: err.message || "Internal Server Error",
   });
 });
+
+
+// live match details
+
+
+
 
 // Graceful Shutdown Handling
 const shutdown = () => {
