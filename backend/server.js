@@ -5,11 +5,16 @@ const morgan = require("morgan");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 const connectDB = require("./config/db");
-const authRoutes = require("./routes/authRoutes");
+const authRoutes = require("./routes/RolesRouter/authRoutes");
 const tournamentRoutes = require("./routes/tournamentRoutes");
 const participantRoutes = require("./routes/playerRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const analyticsRoutes = require("./routes/analyticsRoutes");
+const announcementRouter = require("./routes/announcementRouter");
+const cookieParser = require("cookie-parser");
+const axios = require('axios');
+
 // Load environment variables
 dotenv.config();
 
@@ -18,12 +23,14 @@ connectDB();
 
 // Initialize Express app & HTTP server
 const app = express();
+app.use(cookieParser());
 const server = createServer(app);
 
+
 // Middleware
-app.use(express.json()); 
+app.use(express.json());
 app.use(cors({ origin: process.env.CORS_ORIGIN || "*" })); // Secure CORS for production
-app.use(morgan("dev")); 
+app.use(morgan("dev"));
 
 // Initialize Socket.IO for real-time updates
 const io = new Server(server, {
@@ -54,6 +61,8 @@ app.use("/api/tournaments", tournamentRoutes);
 app.use("/api/participants", participantRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/analytics", analyticsRoutes);
+app.use("/api/announcements", announcementRouter);
 
 // Default API Route
 app.get("/", (req, res) => {
@@ -68,6 +77,12 @@ app.use((err, req, res, next) => {
     message: err.message || "Internal Server Error",
   });
 });
+
+
+// live match details
+
+
+
 
 // Graceful Shutdown Handling
 const shutdown = () => {
