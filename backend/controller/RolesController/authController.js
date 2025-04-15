@@ -11,7 +11,7 @@ const createRefreshToken = (res, userData) => {
     httpOnly: true,
   });
 
-  statusFunc(res, 201, token);
+  statusFunc(res, 201, userData);
 };
 
 const jwtToken = (id) => {
@@ -31,6 +31,7 @@ const statusFunc = (res, statusCode, token) => {
 
 exports.registerUser = async (req, res) => {
   try {
+    console.log(req.body);
     const { username, email, password, role, contactNumber } = req.body;
 
     const userExists = await User.findOne({ email });

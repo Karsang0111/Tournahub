@@ -1,7 +1,16 @@
-module.exports = {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+import plugin from 'tailwindcss/plugin'
+
+export default {
+  darkMode: 'class', 
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    "./node_modules/preline/dist/*.js" // Preline components
+  ],
   theme: {
     extend: {},
   },
-  plugins: [],
-};
+  plugins: [
+    require('preline/plugin') // Preline plugin
+  ],
+}
